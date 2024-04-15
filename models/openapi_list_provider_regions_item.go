@@ -25,14 +25,16 @@ type OpenapiListProviderRegionsItem struct {
 
 	// The cloud provider on which your TiDB cluster is hosted.
 	// - `"AWS"`: the Amazon Web Services cloud provider
-	// - `"GCP"`: the Google Cloud Platform cloud provider
+	// - `"GCP"`: the Google Cloud cloud provider
 	// Example: AWS
 	// Enum: [AWS GCP]
 	CloudProvider string `json:"cloud_provider,omitempty"`
 
 	// The cluster type.
-	// - `"DEVELOPER"`: a [Developer Tier](https://docs.pingcap.com/tidbcloud/select-cluster-tier#developer-tier) cluster
-	// - `"DEDICATED"`: a [Dedicated Tier](https://docs.pingcap.com/tidbcloud/select-cluster-tier#dedicated-tier) cluster
+	// - `"DEVELOPER"`: a [TiDB Serverless](https://docs.pingcap.com/tidbcloud/select-cluster-tier#tidb-serverless) cluster
+	// - `"DEDICATED"`: a [TiDB Dedicated](https://docs.pingcap.com/tidbcloud/select-cluster-tier#dedicated-tier) cluster
+	//
+	// **Warning:** `"DEVELOPER"` will soon be changed to `"SERVERLESS"` to represent TiDB Serverless clusters.
 	// Example: DEDICATED
 	// Enum: [DEDICATED DEVELOPER]
 	ClusterType string `json:"cluster_type,omitempty"`
@@ -274,6 +276,11 @@ func (m *OpenapiListProviderRegionsItem) contextValidateTidb(ctx context.Context
 	for i := 0; i < len(m.Tidb); i++ {
 
 		if m.Tidb[i] != nil {
+
+			if swag.IsZero(m.Tidb[i]) { // not required
+				return nil
+			}
+
 			if err := m.Tidb[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("tidb" + "." + strconv.Itoa(i))
@@ -294,6 +301,11 @@ func (m *OpenapiListProviderRegionsItem) contextValidateTiflash(ctx context.Cont
 	for i := 0; i < len(m.Tiflash); i++ {
 
 		if m.Tiflash[i] != nil {
+
+			if swag.IsZero(m.Tiflash[i]) { // not required
+				return nil
+			}
+
 			if err := m.Tiflash[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("tiflash" + "." + strconv.Itoa(i))
@@ -314,6 +326,11 @@ func (m *OpenapiListProviderRegionsItem) contextValidateTikv(ctx context.Context
 	for i := 0; i < len(m.Tikv); i++ {
 
 		if m.Tikv[i] != nil {
+
+			if swag.IsZero(m.Tikv[i]) { // not required
+				return nil
+			}
+
 			if err := m.Tikv[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("tikv" + "." + strconv.Itoa(i))
@@ -410,6 +427,11 @@ func (m *OpenapiListProviderRegionsItemTidbItems0) ContextValidate(ctx context.C
 func (m *OpenapiListProviderRegionsItemTidbItems0) contextValidateNodeQuantityRange(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.NodeQuantityRange != nil {
+
+		if swag.IsZero(m.NodeQuantityRange) { // not required
+			return nil
+		}
+
 		if err := m.NodeQuantityRange.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("node_quantity_range")
@@ -574,6 +596,11 @@ func (m *OpenapiListProviderRegionsItemTiflashItems0) ContextValidate(ctx contex
 func (m *OpenapiListProviderRegionsItemTiflashItems0) contextValidateNodeQuantityRange(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.NodeQuantityRange != nil {
+
+		if swag.IsZero(m.NodeQuantityRange) { // not required
+			return nil
+		}
+
 		if err := m.NodeQuantityRange.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("node_quantity_range")
@@ -590,6 +617,11 @@ func (m *OpenapiListProviderRegionsItemTiflashItems0) contextValidateNodeQuantit
 func (m *OpenapiListProviderRegionsItemTiflashItems0) contextValidateStorageSizeGibRange(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.StorageSizeGibRange != nil {
+
+		if swag.IsZero(m.StorageSizeGibRange) { // not required
+			return nil
+		}
+
 		if err := m.StorageSizeGibRange.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("storage_size_gib_range")
@@ -710,7 +742,7 @@ type OpenapiListProviderRegionsItemTikvItems0 struct {
 	NodeQuantityRange *OpenapiListProviderRegionsItemTikvItems0NodeQuantityRange `json:"node_quantity_range,omitempty"`
 
 	// The size of the TiKV component in the cluster.
-	// Example: 8C64G
+	// Example: 8C32G
 	NodeSize string `json:"node_size,omitempty"`
 
 	// storage size gib range
@@ -794,6 +826,11 @@ func (m *OpenapiListProviderRegionsItemTikvItems0) ContextValidate(ctx context.C
 func (m *OpenapiListProviderRegionsItemTikvItems0) contextValidateNodeQuantityRange(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.NodeQuantityRange != nil {
+
+		if swag.IsZero(m.NodeQuantityRange) { // not required
+			return nil
+		}
+
 		if err := m.NodeQuantityRange.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("node_quantity_range")
@@ -810,6 +847,11 @@ func (m *OpenapiListProviderRegionsItemTikvItems0) contextValidateNodeQuantityRa
 func (m *OpenapiListProviderRegionsItemTikvItems0) contextValidateStorageSizeGibRange(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.StorageSizeGibRange != nil {
+
+		if swag.IsZero(m.StorageSizeGibRange) { // not required
+			return nil
+		}
+
 		if err := m.StorageSizeGibRange.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("storage_size_gib_range")

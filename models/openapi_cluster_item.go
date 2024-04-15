@@ -25,14 +25,16 @@ type OpenapiClusterItem struct {
 
 	// The cloud provider on which your TiDB cluster is hosted.
 	// - `"AWS"`: the Amazon Web Services cloud provider
-	// - `"GCP"`: the Google Cloud Platform cloud provider
+	// - `"GCP"`: the Google Cloud cloud provider
 	// Example: AWS
 	// Enum: [AWS GCP]
 	CloudProvider string `json:"cloud_provider,omitempty"`
 
 	// The cluster type:
-	// - `"DEVELOPER"`: a [Developer Tier](https://docs.pingcap.com/tidbcloud/select-cluster-tier#developer-tier) cluster
-	// - `"DEDICATED"`: a [Dedicated Tier](https://docs.pingcap.com/tidbcloud/select-cluster-tier#dedicated-tier) cluster.
+	// - `"DEVELOPER"`: a [TiDB Serverless](https://docs.pingcap.com/tidbcloud/select-cluster-tier#tidb-serverless) cluster
+	// - `"DEDICATED"`: a [TiDB Dedicated](https://docs.pingcap.com/tidbcloud/select-cluster-tier#dedicated-tier) cluster
+	//
+	// **Warning:** `"DEVELOPER"` will soon be changed to `"SERVERLESS"` to represent TiDB Serverless clusters.
 	// Example: DEDICATED
 	// Enum: [DEDICATED DEVELOPER]
 	ClusterType string `json:"cluster_type,omitempty"`
@@ -278,6 +280,11 @@ func (m *OpenapiClusterItem) ContextValidate(ctx context.Context, formats strfmt
 func (m *OpenapiClusterItem) contextValidateConfig(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Config != nil {
+
+		if swag.IsZero(m.Config) { // not required
+			return nil
+		}
+
 		if err := m.Config.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("config")
@@ -294,6 +301,11 @@ func (m *OpenapiClusterItem) contextValidateConfig(ctx context.Context, formats 
 func (m *OpenapiClusterItem) contextValidateStatus(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Status != nil {
+
+		if swag.IsZero(m.Status) { // not required
+			return nil
+		}
+
 		if err := m.Status.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("status")
@@ -326,7 +338,7 @@ func (m *OpenapiClusterItem) UnmarshalBinary(b []byte) error {
 }
 
 // OpenapiClusterItemConfig The configuration of the cluster.
-// Example: {"components":{"tidb":{"node_quantity":2,"node_size":"8C16G"},"tikv":{"node_quantity":3,"node_size":"8C64G","storage_size_gib":1024}},"port":4000}
+// Example: {"components":{"tidb":{"node_quantity":2,"node_size":"8C16G"},"tikv":{"node_quantity":3,"node_size":"8C32G","storage_size_gib":1024}},"port":4000}
 //
 // swagger:model OpenapiClusterItemConfig
 type OpenapiClusterItemConfig struct {
@@ -411,6 +423,11 @@ func (m *OpenapiClusterItemConfig) ContextValidate(ctx context.Context, formats 
 func (m *OpenapiClusterItemConfig) contextValidateComponents(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Components != nil {
+
+		if swag.IsZero(m.Components) { // not required
+			return nil
+		}
+
 		if err := m.Components.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("config" + "." + "components")
@@ -443,7 +460,7 @@ func (m *OpenapiClusterItemConfig) UnmarshalBinary(b []byte) error {
 }
 
 // OpenapiClusterItemConfigComponents The components of the cluster.
-// Example: {"tidb":{"node_quantity":2,"node_size":"8C16G"},"tikv":{"node_quantity":3,"node_size":"8C64G","storage_size_gib":1024}}
+// Example: {"tidb":{"node_quantity":2,"node_size":"8C16G"},"tikv":{"node_quantity":3,"node_size":"8C32G","storage_size_gib":1024}}
 //
 // swagger:model OpenapiClusterItemConfigComponents
 type OpenapiClusterItemConfigComponents struct {
@@ -566,6 +583,7 @@ func (m *OpenapiClusterItemConfigComponents) ContextValidate(ctx context.Context
 func (m *OpenapiClusterItemConfigComponents) contextValidateTidb(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Tidb != nil {
+
 		if err := m.Tidb.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("config" + "." + "components" + "." + "tidb")
@@ -582,6 +600,11 @@ func (m *OpenapiClusterItemConfigComponents) contextValidateTidb(ctx context.Con
 func (m *OpenapiClusterItemConfigComponents) contextValidateTiflash(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Tiflash != nil {
+
+		if swag.IsZero(m.Tiflash) { // not required
+			return nil
+		}
+
 		if err := m.Tiflash.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("config" + "." + "components" + "." + "tiflash")
@@ -598,6 +621,7 @@ func (m *OpenapiClusterItemConfigComponents) contextValidateTiflash(ctx context.
 func (m *OpenapiClusterItemConfigComponents) contextValidateTikv(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Tikv != nil {
+
 		if err := m.Tikv.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("config" + "." + "components" + "." + "tikv")
@@ -643,11 +667,8 @@ type OpenapiClusterItemConfigComponentsTidb struct {
 	// The size of the TiDB component in the cluster. You can get the available node size of each region from the response of [List the cloud providers, regions and available specifications](#tag/Cluster/operation/ListProviderRegions).
 	//
 	// **Additional combination rules**:
-	// - If the vCPUs of TiDB or TiKV component is 2 or 4, then their vCPUs need to be the same.
-	// - If the vCPUs of TiDB or TiKV component is 2 or 4, then the cluster does not support TiFlash.
-	//
-	// **Limitations**:
-	// - You cannot modify `node_size` for TiDB of an existing cluster.
+	// - If the vCPUs of TiDB or TiKV component is 4, then their vCPUs need to be the same.
+	// - If the vCPUs of TiDB or TiKV component is 4, then the cluster does not support TiFlash.
 	// Example: 8C16G
 	// Required: true
 	NodeSize *string `json:"node_size"`
@@ -718,10 +739,6 @@ func (m *OpenapiClusterItemConfigComponentsTidb) UnmarshalBinary(b []byte) error
 type OpenapiClusterItemConfigComponentsTiflash struct {
 
 	// The number of nodes in the cluster. You can get the minimum and step of a node quantity from the response of [List the cloud providers, regions and available specifications](#tag/Cluster/operation/ListProviderRegions).
-	//
-	// **Limitations**:
-	// - You cannot decrease node quantity for TiFlash.
-	//
 	// Example: 1
 	// Required: true
 	NodeQuantity *int32 `json:"node_quantity"`
@@ -729,11 +746,8 @@ type OpenapiClusterItemConfigComponentsTiflash struct {
 	// The size of the TiFlash component in the cluster. You can get the available node size of each region from the response of [List the cloud providers, regions and available specifications](#tag/Cluster/operation/ListProviderRegions).
 	//
 	// **Additional combination rules**:
-	// - If the vCPUs of TiDB or TiKV component is 2 or 4, then their vCPUs need to be the same.
-	// - If the vCPUs of TiDB or TiKV component is 2 or 4, then the cluster does not support TiFlash.
-	//
-	// **Limitations**:
-	// - You cannot modify `node_size` for TiFlash of an existing cluster.
+	// - If the vCPUs of TiDB or TiKV component is 4, then their vCPUs need to be the same.
+	// - If the vCPUs of TiDB or TiKV component is 4, then the cluster does not support TiFlash.
 	// Example: 8C64G
 	// Required: true
 	NodeSize *string `json:"node_size"`
@@ -825,7 +839,6 @@ type OpenapiClusterItemConfigComponentsTikv struct {
 	// The number of nodes in the cluster. You can get the minimum and step of a node quantity from the response of [List the cloud providers, regions and available specifications](#tag/Cluster/operation/ListProviderRegions).
 	//
 	// **Limitations**:
-	// - You cannot decrease node quantity for TiKV.
 	// - The `node_quantity` of TiKV must be a multiple of 3.
 	// Example: 3
 	// Required: true
@@ -834,11 +847,8 @@ type OpenapiClusterItemConfigComponentsTikv struct {
 	// The size of the TiKV component in the cluster. You can get the available node size of each region from the response of [List the cloud providers, regions and available specifications](#tag/Cluster/operation/ListProviderRegions).
 	//
 	// **Additional combination rules**:
-	// - If the vCPUs of TiDB or TiKV component is 2 or 4, then their vCPUs need to be the same.
-	// - If the vCPUs of TiDB or TiKV component is 2 or 4, then the cluster does not support TiFlash.
-	//
-	// **Limitations**:
-	// - You cannot modify `node_size` for TiKV of an existing cluster.
+	// - If the vCPUs of TiDB or TiKV component is 4, then their vCPUs need to be the same.
+	// - If the vCPUs of TiDB or TiKV component is 4, then the cluster does not support TiFlash.
 	// Example: 8C64G
 	// Required: true
 	NodeSize *string `json:"node_size"`
@@ -930,7 +940,7 @@ type OpenapiClusterItemStatus struct {
 
 	// Status of the cluster.
 	// Example: AVAILABLE
-	// Enum: [AVAILABLE CREATING MODIFYING PAUSED RESUMING UNAVAILABLE IMPORTING]
+	// Enum: [AVAILABLE CREATING MODIFYING PAUSED RESUMING UNAVAILABLE IMPORTING MAINTAINING PAUSING]
 	ClusterStatus string `json:"cluster_status,omitempty"`
 
 	// connection strings
@@ -970,7 +980,7 @@ var openapiClusterItemStatusTypeClusterStatusPropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["AVAILABLE","CREATING","MODIFYING","PAUSED","RESUMING","UNAVAILABLE","IMPORTING"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["AVAILABLE","CREATING","MODIFYING","PAUSED","RESUMING","UNAVAILABLE","IMPORTING","MAINTAINING","PAUSING"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -1000,6 +1010,12 @@ const (
 
 	// OpenapiClusterItemStatusClusterStatusIMPORTING captures enum value "IMPORTING"
 	OpenapiClusterItemStatusClusterStatusIMPORTING string = "IMPORTING"
+
+	// OpenapiClusterItemStatusClusterStatusMAINTAINING captures enum value "MAINTAINING"
+	OpenapiClusterItemStatusClusterStatusMAINTAINING string = "MAINTAINING"
+
+	// OpenapiClusterItemStatusClusterStatusPAUSING captures enum value "PAUSING"
+	OpenapiClusterItemStatusClusterStatusPAUSING string = "PAUSING"
 )
 
 // prop value enum
@@ -1082,6 +1098,11 @@ func (m *OpenapiClusterItemStatus) ContextValidate(ctx context.Context, formats 
 func (m *OpenapiClusterItemStatus) contextValidateConnectionStrings(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.ConnectionStrings != nil {
+
+		if swag.IsZero(m.ConnectionStrings) { // not required
+			return nil
+		}
+
 		if err := m.ConnectionStrings.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("status" + "." + "connection_strings")
@@ -1098,6 +1119,11 @@ func (m *OpenapiClusterItemStatus) contextValidateConnectionStrings(ctx context.
 func (m *OpenapiClusterItemStatus) contextValidateNodeMap(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.NodeMap != nil {
+
+		if swag.IsZero(m.NodeMap) { // not required
+			return nil
+		}
+
 		if err := m.NodeMap.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("status" + "." + "node_map")
@@ -1222,6 +1248,11 @@ func (m *OpenapiClusterItemStatusConnectionStrings) ContextValidate(ctx context.
 func (m *OpenapiClusterItemStatusConnectionStrings) contextValidateStandard(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Standard != nil {
+
+		if swag.IsZero(m.Standard) { // not required
+			return nil
+		}
+
 		if err := m.Standard.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("status" + "." + "connection_strings" + "." + "standard")
@@ -1238,6 +1269,11 @@ func (m *OpenapiClusterItemStatusConnectionStrings) contextValidateStandard(ctx 
 func (m *OpenapiClusterItemStatusConnectionStrings) contextValidateVpcPeering(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.VpcPeering != nil {
+
+		if swag.IsZero(m.VpcPeering) { // not required
+			return nil
+		}
+
 		if err := m.VpcPeering.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("status" + "." + "connection_strings" + "." + "vpc_peering")
@@ -1283,7 +1319,7 @@ type OpenapiClusterItemStatusConnectionStringsStandard struct {
 	// The TiDB port for connection. The port must be in the range of 1024-65535 except 10080.
 	//
 	// **Limitations**:
-	// - For a Developer Tier cluster, only port `4000` is available.
+	// - For a TiDB Serverless cluster, only port `4000` is available.
 	// Example: 4000
 	// Maximum: 65535
 	// Minimum: 1024
@@ -1357,7 +1393,7 @@ type OpenapiClusterItemStatusConnectionStringsVpcPeering struct {
 	// The TiDB port for connection. The port must be in the range of 1024-65535 except 10080.
 	//
 	// **Limitations**:
-	// - For a Developer Tier cluster, only port `4000` is available.
+	// - For a TiDB Serverless cluster, only port `4000` is available.
 	// Example: 4000
 	// Maximum: 65535
 	// Minimum: 1024
@@ -1432,7 +1468,7 @@ type OpenapiClusterItemStatusNodeMap struct {
 	Tiflash []*OpenapiClusterItemStatusNodeMapTiflashItems0 `json:"tiflash"`
 
 	// TiKV node map.
-	// Example: [{"availability_zone":"us-west-2a","node_name":"tikv-0","node_size":"8C64G","ram_bytes":"68719476736","status":"NODE_STATUS_AVAILABLE","storage_size_gib":1024,"vcpu_num":8},{"availability_zone":"us-west-2b","node_name":"tikv-1","node_size":"8C64G","ram_bytes":"68719476736","status":"NODE_STATUS_AVAILABLE","storage_size_gib":1024,"vcpu_num":8},{"availability_zone":"us-west-2c","node_name":"tikv-2","node_size":"8C64G","ram_bytes":"68719476736","status":"NODE_STATUS_AVAILABLE","storage_size_gib":1024,"vcpu_num":8}]
+	// Example: [{"availability_zone":"us-west-2a","node_name":"tikv-0","node_size":"8C32G","ram_bytes":"68719476736","status":"NODE_STATUS_AVAILABLE","storage_size_gib":1024,"vcpu_num":8},{"availability_zone":"us-west-2b","node_name":"tikv-1","node_size":"8C64G","ram_bytes":"68719476736","status":"NODE_STATUS_AVAILABLE","storage_size_gib":1024,"vcpu_num":8},{"availability_zone":"us-west-2c","node_name":"tikv-2","node_size":"8C64G","ram_bytes":"68719476736","status":"NODE_STATUS_AVAILABLE","storage_size_gib":1024,"vcpu_num":8}]
 	// Required: true
 	Tikv []*OpenapiClusterItemStatusNodeMapTikvItems0 `json:"tikv"`
 }
@@ -1566,6 +1602,11 @@ func (m *OpenapiClusterItemStatusNodeMap) contextValidateTidb(ctx context.Contex
 	for i := 0; i < len(m.Tidb); i++ {
 
 		if m.Tidb[i] != nil {
+
+			if swag.IsZero(m.Tidb[i]) { // not required
+				return nil
+			}
+
 			if err := m.Tidb[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("status" + "." + "node_map" + "." + "tidb" + "." + strconv.Itoa(i))
@@ -1586,6 +1627,11 @@ func (m *OpenapiClusterItemStatusNodeMap) contextValidateTiflash(ctx context.Con
 	for i := 0; i < len(m.Tiflash); i++ {
 
 		if m.Tiflash[i] != nil {
+
+			if swag.IsZero(m.Tiflash[i]) { // not required
+				return nil
+			}
+
 			if err := m.Tiflash[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("status" + "." + "node_map" + "." + "tiflash" + "." + strconv.Itoa(i))
@@ -1606,6 +1652,11 @@ func (m *OpenapiClusterItemStatusNodeMap) contextValidateTikv(ctx context.Contex
 	for i := 0; i < len(m.Tikv); i++ {
 
 		if m.Tikv[i] != nil {
+
+			if swag.IsZero(m.Tikv[i]) { // not required
+				return nil
+			}
+
 			if err := m.Tikv[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("status" + "." + "node_map" + "." + "tikv" + "." + strconv.Itoa(i))
@@ -1889,7 +1940,7 @@ type OpenapiClusterItemStatusNodeMapTikvItems0 struct {
 	NodeName string `json:"node_name,omitempty"`
 
 	// The size of the TiKV component in the cluster.
-	// Example: 8C64G
+	// Example: 8C32G
 	NodeSize string `json:"node_size,omitempty"`
 
 	// The RAM size of a node in the cluster. If the `cluster_type` is `"DEVELOPER"`, `ram_bytes` is always 0.
